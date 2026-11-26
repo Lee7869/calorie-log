@@ -1,5 +1,6 @@
+import { Stack } from "expo-router";
 import { useState } from "react";
-import { Keyboard, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Keyboard, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
 // 一筆餐點長這樣
 type Meal = { id: string; name: string; kcal: number; protein: number };
@@ -36,9 +37,12 @@ export default function Index() {
     setProtein("");
     Keyboard.dismiss();
   }
-
+function deleteMeal(id: string) {
+  setMeals(meals.filter((m) => m.id !== id)); // 留下 id 不一樣的，等於刪掉這筆
+}
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
+  <Stack.Screen options={{ title: "今日飲食" }} />
       {/* 摘要 */}
       <Text style={styles.title}>今日熱量</Text>
       <Text style={styles.big}>{eaten} kcal</Text>
@@ -61,15 +65,25 @@ export default function Index() {
       </View>
 
       {/* 簡單列出（第 3 關會做得更完整） */}
-      {meals.map((m) => (
-        <Text key={m.id}>・{m.name}　{m.kcal} kcal　{m.protein} g</Text>
-      ))}
+      {meals.length === 0 && <Text style={{ color: "#999" }}>今天還沒有紀錄</Text>}
+
+{meals.map((m) => (
+  <View key={m.id} style={styles.row}>
+    <View style={{ flex: 1 }}>
+      <Text style={styles.mealName}>{m.name}</Text>
+      <Text style={styles.mealInfo}>{m.kcal} kcal・蛋白質 {m.protein} g</Text>
     </View>
+    <Pressable onPress={() => deleteMeal(m.id)}>
+      <Text style={styles.delete}>刪除</Text>
+    </Pressable>
+  </View>
+))}
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 24, paddingTop: 60, gap: 6 },
+  container: { padding: 24, paddingTop: 60, gap: 6 },
   title: { fontSize: 18, color: "#666" },
   big: { fontSize: 48, fontWeight: "bold" },
   over: { color: "red", fontWeight: "bold" },
@@ -77,4 +91,10 @@ const styles = StyleSheet.create({
   input: { borderWidth: 1, borderColor: "#ccc", borderRadius: 8, padding: 12, fontSize: 16 },
   button: { backgroundColor: "#2e7d32", padding: 14, borderRadius: 8, alignItems: "center" },
   buttonText: { color: "white", fontSize: 16, fontWeight: "bold" },
+  row: { flexDirection: "row", alignItems: "center", padding: 12,
+         backgroundColor: "white", borderRadius: 8 },
+  mealName: { fontSize: 16, fontWeight: "bold" },
+  mealInfo: { color: "#666", marginTop: 2 },
+  delete: { color: "red", padding: 8 },
+});
 });
