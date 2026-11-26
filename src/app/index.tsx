@@ -97,4 +97,3 @@ const styles = StyleSheet.create({
   mealInfo: { color: "#666", marginTop: 2 },
   delete: { color: "red", padding: 8 },
 });
-});
