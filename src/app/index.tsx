@@ -1,5 +1,4 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Stack } from "expo-router";
 import { useEffect, useState } from "react";
 import { Keyboard, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 // 一筆餐點長這樣
@@ -81,7 +80,7 @@ export default function Index() {
   }
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Stack.Screen options={{ title: "今日飲食" }} />
+   
       {/* 摘要 */}
       <Text style={styles.title}>今日熱量</Text>
       <Text style={styles.big}>{eaten} kcal</Text>
@@ -139,7 +138,7 @@ export default function Index() {
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 24, paddingTop: 60, gap: 6 },
+  container: { padding: 24, paddingTop: 24, gap: 6 },
   title: { fontSize: 18, color: "#666" },
   big: { fontSize: 48, fontWeight: "bold" },
   over: { color: "red", fontWeight: "bold" },
