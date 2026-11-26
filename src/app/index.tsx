@@ -1,7 +1,7 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Stack } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Keyboard, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
-
 // 一筆餐點長這樣
 type Meal = { id: string; name: string; kcal: number; protein: number };
 
@@ -13,6 +13,21 @@ export default function Index() {
   const [name, setName] = useState("");
   const [kcal, setKcal] = useState("");
   const [protein, setProtein] = useState("");
+    const [loaded, setLoaded] = useState(false); // 讀檔完成了沒
+
+  // ① App 打開時：讀取存檔（只跑一次）
+  useEffect(() => {
+    AsyncStorage.getItem("meals").then((saved) => {
+      if (saved) setMeals(JSON.parse(saved)); // 文字 → 陣列
+      setLoaded(true);
+    });
+  }, []);
+
+  // ② meals 一有變動：存檔
+  useEffect(() => {
+    if (!loaded) return; // 還沒讀完就先不要存，避免空陣列蓋掉舊資料
+    AsyncStorage.setItem("meals", JSON.stringify(meals)); // 陣列 → 文字
+  }, [meals, loaded]);
 
   // 從餐點清單算出總和
   const eaten = meals.reduce((sum, m) => sum + m.kcal, 0);
