@@ -3,8 +3,14 @@ import { Stack } from "expo-router";
 import { useEffect, useState } from "react";
 import { Keyboard, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 // 一筆餐點長這樣
-type Meal = { id: string; name: string; kcal: number; protein: number };
-
+type Meal = { id: string; name: string; kcal: number; protein: number; date: string };
+// 取得今天日期，格式 2026-11-26
+function todayStr() {
+  const d = new Date();
+  const m = String(d.getMonth() + 1).padStart(2, "0"); // 月份從 0 開始，要 +1
+  const day = String(d.getDate()).padStart(2, "0");
+     return `${d.getFullYear()}-${m}-${day}`;
+}
 export default function Index() {
   const goal = 2000;
 
@@ -13,7 +19,7 @@ export default function Index() {
   const [name, setName] = useState("");
   const [kcal, setKcal] = useState("");
   const [protein, setProtein] = useState("");
-    const [loaded, setLoaded] = useState(false); // 讀檔完成了沒
+  const [loaded, setLoaded] = useState(false); // 讀檔完成了沒
 
   // ① App 打開時：讀取存檔（只跑一次）
   useEffect(() => {
@@ -28,21 +34,22 @@ export default function Index() {
     if (!loaded) return; // 還沒讀完就先不要存，避免空陣列蓋掉舊資料
     AsyncStorage.setItem("meals", JSON.stringify(meals)); // 陣列 → 文字
   }, [meals, loaded]);
-
+  const todayMeals = meals.filter((m) => m.date === todayStr());
   // 從餐點清單算出總和
-  const eaten = meals.reduce((sum, m) => sum + m.kcal, 0);
-  const totalProtein = meals.reduce((sum, m) => sum + m.protein, 0);
+  const eaten = todayMeals.reduce((sum, m) => sum + m.kcal, 0);
+  const totalProtein = todayMeals.reduce((sum, m) => sum + m.protein, 0);
   const left = goal - eaten;
 
   function addMeal() {
     const k = Number(kcal);
     if (!name.trim() || !k) return; // 沒填名稱或熱量就不加
 
-    const newMeal: Meal = {
+        const newMeal: Meal = {
       id: Date.now().toString(),
       name: name.trim(),
       kcal: k,
       protein: Number(protein) || 0,
+      date: todayStr(),
     };
     setMeals([...meals, newMeal]); // 舊清單 + 新的一筆
 
@@ -52,12 +59,12 @@ export default function Index() {
     setProtein("");
     Keyboard.dismiss();
   }
-function deleteMeal(id: string) {
-  setMeals(meals.filter((m) => m.id !== id)); // 留下 id 不一樣的，等於刪掉這筆
-}
+  function deleteMeal(id: string) {
+    setMeals(meals.filter((m) => m.id !== id)); // 留下 id 不一樣的，等於刪掉這筆
+  }
   return (
     <ScrollView contentContainerStyle={styles.container}>
-  <Stack.Screen options={{ title: "今日飲食" }} />
+      <Stack.Screen options={{ title: "今日飲食" }} />
       {/* 摘要 */}
       <Text style={styles.title}>今日熱量</Text>
       <Text style={styles.big}>{eaten} kcal</Text>
@@ -79,20 +86,20 @@ function deleteMeal(id: string) {
         </Pressable>
       </View>
 
-      {/* 簡單列出（第 3 關會做得更完整） */}
-      {meals.length === 0 && <Text style={{ color: "#999" }}>今天還沒有紀錄</Text>}
+      {/* 今日清單 */}
+      {todayMeals.length === 0 && <Text style={{ color: "#999" }}>今天還沒有紀錄</Text>}
 
-{meals.map((m) => (
-  <View key={m.id} style={styles.row}>
-    <View style={{ flex: 1 }}>
-      <Text style={styles.mealName}>{m.name}</Text>
-      <Text style={styles.mealInfo}>{m.kcal} kcal・蛋白質 {m.protein} g</Text>
-    </View>
-    <Pressable onPress={() => deleteMeal(m.id)}>
-      <Text style={styles.delete}>刪除</Text>
-    </Pressable>
-  </View>
-))}
+      {todayMeals.map((m) => (
+        <View key={m.id} style={styles.row}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.mealName}>{m.name}</Text>
+            <Text style={styles.mealInfo}>{m.kcal} kcal・蛋白質 {m.protein} g</Text>
+          </View>
+          <Pressable onPress={() => deleteMeal(m.id)}>
+            <Text style={styles.delete}>刪除</Text>
+          </Pressable>
+        </View>
+      ))}
     </ScrollView>
   );
 }
@@ -106,8 +113,10 @@ const styles = StyleSheet.create({
   input: { borderWidth: 1, borderColor: "#ccc", borderRadius: 8, padding: 12, fontSize: 16 },
   button: { backgroundColor: "#2e7d32", padding: 14, borderRadius: 8, alignItems: "center" },
   buttonText: { color: "white", fontSize: 16, fontWeight: "bold" },
-  row: { flexDirection: "row", alignItems: "center", padding: 12,
-         backgroundColor: "white", borderRadius: 8 },
+  row: {
+    flexDirection: "row", alignItems: "center", padding: 12,
+    backgroundColor: "white", borderRadius: 8
+  },
   mealName: { fontSize: 16, fontWeight: "bold" },
   mealInfo: { color: "#666", marginTop: 2 },
   delete: { color: "red", padding: 8 },
